@@ -64,6 +64,8 @@ class MediaController(Adw.BreakpointBin):
         self._connect_view_model()
         self._connect_widgets()
 
+        self.connect("realize", lambda *_: self._on_book_changed())
+        self.connect("notify::scale-factor", lambda *_: self._on_book_changed())
         self._on_book_changed()
         self._on_lock_ui_changed()
         self._on_length_changed()

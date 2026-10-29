@@ -24,8 +24,18 @@ class BookRow(Adw.ActionRow):
             self.set_activatable(True)
             self.set_tooltip_text(_("Play this book"))
 
+        self._book = book
+        self._cover_clamp = None
+        self.connect("realize", self._load_cover)
+        self.connect("notify::scale-factor", self._load_cover)
+
+    def _load_cover(self, *_):
+        if not self.get_realized():
+            return
+        if self._cover_clamp is not None:
+            self.remove(self._cover_clamp)
         paintable = self._artwork_cache.get_cover_paintable(
-            book, self.get_scale_factor(), BOOK_ICON_SIZE
+            self._book, self.get_scale_factor(), BOOK_ICON_SIZE
         )
         if paintable:
             album_art = Gtk.Picture.new_for_paintable(paintable)
@@ -42,4 +52,5 @@ class BookRow(Adw.ActionRow):
         clamp = Adw.Clamp(maximum_size=BOOK_ICON_SIZE)
         clamp.set_child(album_art)
 
+        self._cover_clamp = clamp
         self.add_prefix(clamp)

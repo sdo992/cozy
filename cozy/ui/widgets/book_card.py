@@ -84,17 +84,8 @@ class BookCard(Gtk.FlowBoxChild):
         self.title = book.name
         self.author = book.author
 
-        paintable = self.artwork_cache.get_cover_paintable(
-            book, self.get_scale_factor(), ALBUM_ART_SIZE
-        )
-
-        if paintable:
-            self.artwork.set_paintable(paintable)
-            self.artwork.set_size_request(ALBUM_ART_SIZE, ALBUM_ART_SIZE)
-            self.stack.set_visible_child(self.artwork)
-        else:
-            self.fallback_icon.set_from_icon_name("cozy.book-open-symbolic")
-            self.stack.set_visible_child(self.fallback_icon)
+        self.connect("realize", self._load_cover)
+        self.connect("notify::scale-factor", self._load_cover)
 
         self.menu_button.connect("notify::active", self._on_leave)
         self.set_cursor(Gdk.Cursor.new_from_name("pointer"))
@@ -104,6 +95,20 @@ class BookCard(Gtk.FlowBoxChild):
         self.book.bind_to("position", self._on_position_updated)
 
         self._setup_menu()
+
+    def _load_cover(self, *_):
+        if not self.get_realized():
+            return
+        paintable = self.artwork_cache.get_cover_paintable(
+            self.book, self.get_scale_factor(), ALBUM_ART_SIZE
+        )
+        if paintable:
+            self.artwork.set_paintable(paintable)
+            self.artwork.set_size_request(ALBUM_ART_SIZE, ALBUM_ART_SIZE)
+            self.stack.set_visible_child(self.artwork)
+        else:
+            self.fallback_icon.set_from_icon_name("cozy.book-open-symbolic")
+            self.stack.set_visible_child(self.fallback_icon)
 
     def _setup_menu(self):
         remove_recents_item = Gio.MenuItem.new(_("Remove from Recents"))
